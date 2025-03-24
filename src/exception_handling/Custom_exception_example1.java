@@ -1,9 +1,7 @@
 package exception_handling;
 
-import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,50 +12,17 @@ public class Custom_exception_example1 {
 	public static void writeToFile(String filename, String content) throws IOException, InvalidFileNameException {
 		validateFileName(filename);
 
-		File file = new File(filename);
+		File dir = new File("files");
+		if (!dir.exists()) {
+			dir.mkdir();
+		}
+
+		File file = new File(dir, filename);
 
 		try (FileWriter writer = new FileWriter(file)) {
 			writer.write(content);
 			writer.flush();
-			System.out.println("File written successfully.");
-		}
-
-		if (file.exists()) {
-			System.out.println("File path: " + file.getAbsolutePath());
-			System.out.println("File size: " + file.length() + " bytes");
-
-			try {
-				Desktop desktop = Desktop.getDesktop();
-				desktop.open(file);
-
-				try (Scanner scanner = new Scanner(System.in)) {
-					System.out.println("Do you want to close, update, or delete the file? (close/update/delete/no)");
-					String action = scanner.nextLine();
-
-					switch (action.trim().toLowerCase()) {
-					case "close":
-						System.out.println("Please close the file manually in the opened application.");
-						break;
-					case "update":
-						System.out.println("Enter new content for the file:");
-						String newContent = scanner.nextLine();
-						updateFile(file, newContent);
-						break;
-					case "delete":
-						deleteFile(file);
-						break;
-					case "no":
-						System.out.println("No action taken.");
-						break;
-					default:
-						System.out.println("Invalid action.");
-					}
-				}
-			} catch (IOException e) {
-				System.err.println("Error opening file: " + e.getMessage());
-			}
-		} else {
-			System.out.println("Failed to create the file.");
+			System.out.println("File written successfully: " + file.getAbsolutePath());
 		}
 	}
 
@@ -67,55 +32,153 @@ public class Custom_exception_example1 {
 		}
 	}
 
-	private static void updateFile(File file, String newContent) throws IOException {
+	public static void listFiles() {
+		File dir = new File("files");
+		if (!dir.exists() || !dir.isDirectory()) {
+			System.out.println("No files found.");
+			return;
+		}
+
+		File[] files = dir.listFiles();
+		if (files != null && files.length > 0) {
+			System.out.println("Existing files:");
+			for (File file : files) {
+				System.out.println(file.getName());
+			}
+		} else {
+			System.out.println("No files found.");
+		}
+	}
+
+	public static void readFile(String filename) throws IOException {
+		File file = new File("files", filename);
+		if (!file.exists()) {
+			System.out.println("File does not exist: " + filename);
+			return;
+		}
+
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+			String line;
+			System.out.println("Content of " + filename + ":");
+			while ((line = reader.readLine()) != null) {
+				System.out.println(line);
+			}
+		}
+	}
+
+	public static void removeFile(String filename) {
+		File file = new File("files", filename);
+		if (file.exists() && file.delete()) {
+			System.out.println("File deleted: " + filename);
+		} else {
+			System.out.println("File not found or could not be deleted.");
+		}
+	}
+
+	public static void removeAllFiles() {
+		File dir = new File("files");
+		if (dir.exists() && dir.isDirectory()) {
+			File[] files = dir.listFiles();
+			if (files != null) {
+				for (File file : files) {
+					file.delete();
+				}
+			}
+			System.out.println("All files have been deleted.");
+		} else {
+			System.out.println("No files to delete.");
+		}
+	}
+
+	public static void updateFile(String filename, String newContent) throws IOException {
+		File file = new File("files", filename);
+		if (!file.exists()) {
+			System.out.println("File does not exist: " + filename);
+			return;
+		}
+
 		try (FileWriter writer = new FileWriter(file, false)) {
 			writer.write(newContent);
 			writer.flush();
-		}
-		String content = readContent(file.getAbsolutePath());
-		System.out.println("Content inside file: " + content);
-	}
-
-	private static void deleteFile(File file) {
-		if (file.delete()) {
-			System.out.println("File deleted successfully.");
-		} else {
-			System.out.println("Failed to delete the file.");
+			System.out.println("File updated successfully.");
 		}
 	}
 
-	public static String readContent(String filePath) throws IOException {
-		StringBuilder content = new StringBuilder();
-		try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				content.append(line).append("\n");
+	public static void updateAllFiles(String newContent) throws IOException {
+		File dir = new File("files");
+		if (dir.exists() && dir.isDirectory()) {
+			File[] files = dir.listFiles();
+			if (files != null && files.length > 0) {
+				for (File file : files) {
+					try (FileWriter writer = new FileWriter(file, false)) {
+						writer.write(newContent);
+						writer.flush();
+					}
+				}
+				System.out.println("All files updated successfully.");
+			} else {
+				System.out.println("No files to update.");
 			}
-		} catch (FileNotFoundException e) {
-			System.out.println("File not found: " + e.getMessage());
-		} catch (IOException e) {
-			System.out.println("Error reading file: " + e.getMessage());
+		} else {
+			System.out.println("No files to update.");
 		}
-		return content.toString().trim();
 	}
 
 	public static void main(String[] args) {
 		try (Scanner scan = new Scanner(System.in)) {
-			System.out.println("Do you wanna write a text file ?(yes/no)");
-			String answer = scan.nextLine();
-			if (answer.equals("yes")) {
-				System.out.println("Please give a name for your file.");
-				String fileName = scan.nextLine();
-				writeToFile(fileName + ".txt", "Hello, World!"); // Invalid file name for testing
+			System.out.println("Enter command (write/list/read/remove/removeAll/update/updateAll):");
+			String command = scan.nextLine();
+
+			switch (command.toLowerCase()) {
+			case "write":
+				System.out.println("Enter filename:");
+				String filename = scan.nextLine();
+				System.out.println("Enter content:");
+				String content = scan.nextLine();
+				writeToFile(filename, content);
+				break;
+
+			case "list":
+				listFiles();
+				break;
+
+			case "read":
+				System.out.println("Enter filename to read:");
+				String fileToRead = scan.nextLine();
+				readFile(fileToRead);
+				break;
+
+			case "remove":
+				System.out.println("Enter filename to remove:");
+				String fileToRemove = scan.nextLine();
+				removeFile(fileToRemove);
+				break;
+
+			case "removeall":
+				removeAllFiles();
+				break;
+
+			case "update":
+				System.out.println("Enter filename to update:");
+				String fileToUpdate = scan.nextLine();
+				System.out.println("Enter new content:");
+				String newContent = scan.nextLine();
+				updateFile(fileToUpdate, newContent);
+				break;
+
+			case "updateall":
+				System.out.println("Enter new content for all files:");
+				String contentForAll = scan.nextLine();
+				updateAllFiles(contentForAll);
+				break;
+
+			default:
+				System.out.println("Invalid command.");
 			}
-		} catch (IOException e) {
-			System.out.println("IO Exception: " + e.getMessage());
-		} catch (InvalidFileNameException e) {
-			System.out.println("Validation Exception: " + e.getMessage());
-			System.out.println("Suggestion: " + e.getSuggestedFix()); // Call the method here
+		} catch (Exception e) {
+			System.out.println("Error: " + e.getMessage());
 		} finally {
-			System.out.println("Finished");
+			System.out.println("Finished !!!");
 		}
 	}
-
 }
