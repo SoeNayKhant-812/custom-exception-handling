@@ -62,7 +62,7 @@ public class Custom_exception_example1 {
 	}
 
 	private static void validateFileName(String filename) throws InvalidFileNameException {
-		if (!filename.matches("[a-zA-Z0-9_.]+")) {
+		if (!filename.matches("[a-zA-Z0-9_.-]+")) {
 			throw new InvalidFileNameException("Invalid file name: " + filename);
 		}
 	}
@@ -101,17 +101,21 @@ public class Custom_exception_example1 {
 
 	public static void main(String[] args) {
 		try (Scanner scan = new Scanner(System.in)) {
-			System.out.println("Do you wanna write a file ?");
+			System.out.println("Do you wanna write a text file ?(yes/no)");
 			String answer = scan.nextLine();
 			if (answer.equals("yes")) {
-				writeToFile("valid_file.txt", "Hello, World!");
+				System.out.println("Please give a name for your file.");
+				String fileName = scan.nextLine();
+				writeToFile(fileName + ".txt", "Hello, World!"); // Invalid file name for testing
 			}
 		} catch (IOException e) {
 			System.out.println("IO Exception: " + e.getMessage());
 		} catch (InvalidFileNameException e) {
 			System.out.println("Validation Exception: " + e.getMessage());
+			System.out.println("Suggestion: " + e.getSuggestedFix()); // Call the method here
 		} finally {
 			System.out.println("Finished");
 		}
 	}
+
 }
