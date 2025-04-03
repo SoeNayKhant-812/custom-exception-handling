@@ -37,9 +37,7 @@ public class Custom_exception_example1 {
 
 	public static void listFiles() {
 		ensureDirectoryExists();
-		File dir = new File(DIRECTORY_PATH);
-
-		File[] files = dir.listFiles();
+		File[] files = new File(DIRECTORY_PATH).listFiles();
 		if (files != null && files.length > 0) {
 			System.out.println("Existing files:");
 			for (File file : files) {
