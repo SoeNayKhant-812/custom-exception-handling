@@ -1,6 +1,8 @@
 package exception_handling;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
@@ -98,6 +100,42 @@ public class Custom_exception_example1 {
 		}
 	}
 
+	public static void searchFiles(String keyword) {
+		File dir = new File(DIRECTORY_PATH);
+		if (!dir.exists() || !dir.isDirectory()) {
+			System.out.println("No files found.");
+			return;
+		}
+
+		File[] files = dir.listFiles();
+		if (files == null || files.length == 0) {
+			System.out.println("No files found.");
+			return;
+		}
+
+		List<String> matchingFiles = new ArrayList<>();
+
+		for (File file : files) {
+			if (file.isFile()) {
+				try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+					boolean found = reader.lines().anyMatch(line -> line.contains(keyword));
+					if (found) {
+						matchingFiles.add(file.getName());
+					}
+				} catch (IOException e) {
+					System.err.println("Error reading file: " + file.getName());
+				}
+			}
+		}
+
+		if (matchingFiles.isEmpty()) {
+			System.out.println("No files contain the keyword: " + keyword);
+		} else {
+			System.out.println("Files containing the keyword '" + keyword + "':");
+			matchingFiles.forEach(System.out::println);
+		}
+	}
+
 	public static void removeFile(String filename) {
 		File file = new File(DIRECTORY_PATH, filename);
 		if (file.exists() && file.delete()) {
@@ -158,7 +196,7 @@ public class Custom_exception_example1 {
 
 	public static void main(String[] args) {
 		try (Scanner scan = new Scanner(System.in)) {
-			System.out.println("Enter command (write/list/read/copy/remove/removeAll/update/updateAll):");
+			System.out.println("Enter command (write/list/read/copy/search/remove/removeAll/update/updateAll):");
 			String command = scan.nextLine().trim().toLowerCase();
 
 			switch (command) {
@@ -182,6 +220,10 @@ public class Custom_exception_example1 {
 				System.out.println("Enter new filename:");
 				String destination = scan.nextLine();
 				copyFile(source, destination);
+				break;
+			case "search":
+				System.out.println("Enter keyword to search:");
+				searchFiles(scan.nextLine());
 				break;
 			case "remove":
 				System.out.println("Enter filename to remove:");
