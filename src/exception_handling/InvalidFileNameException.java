@@ -14,7 +14,7 @@ class InvalidFileNameException extends Exception {
 	}
 
 	public String getSuggestedFix() {
-		return "File name should only contain letters, numbers, underscores, and periods.";
+		return "File name should only contain letters, numbers, underscores, hypen and periods.";
 	}
 
 }

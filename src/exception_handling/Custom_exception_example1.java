@@ -36,11 +36,8 @@ public class Custom_exception_example1 {
 	}
 
 	public static void listFiles() {
+		ensureDirectoryExists();
 		File dir = new File(DIRECTORY_PATH);
-		if (!dir.exists() || !dir.isDirectory()) {
-			System.out.println("No files found.");
-			return;
-		}
 
 		File[] files = dir.listFiles();
 		if (files != null && files.length > 0) {
@@ -95,19 +92,12 @@ public class Custom_exception_example1 {
 			});
 			writer.flush();
 			System.out.println("File copied successfully: " + newFilename);
-		} catch (IOException e) {
-			System.err.println("Error copying file: " + e.getMessage());
 		}
 	}
 
 	public static void searchFiles(String keyword) {
-		File dir = new File(DIRECTORY_PATH);
-		if (!dir.exists() || !dir.isDirectory()) {
-			System.out.println("No files found.");
-			return;
-		}
-
-		File[] files = dir.listFiles();
+		ensureDirectoryExists();
+		File[] files = new File(DIRECTORY_PATH).listFiles();
 		if (files == null || files.length == 0) {
 			System.out.println("No files found.");
 			return;
@@ -146,13 +136,11 @@ public class Custom_exception_example1 {
 	}
 
 	public static void removeAllFiles() {
-		File dir = new File(DIRECTORY_PATH);
-		if (dir.exists() && dir.isDirectory()) {
-			File[] files = dir.listFiles();
-			if (files != null) {
-				for (File file : files) {
-					file.delete();
-				}
+		ensureDirectoryExists();
+		File[] files = new File(DIRECTORY_PATH).listFiles();
+		if (files != null && files.length > 0) {
+			for (File file : files) {
+				file.delete();
 			}
 			System.out.println("All files have been deleted.");
 		} else {
@@ -175,26 +163,22 @@ public class Custom_exception_example1 {
 	}
 
 	public static void updateAllFiles(String newContent) throws IOException {
-		File dir = new File(DIRECTORY_PATH);
-		if (dir.exists() && dir.isDirectory()) {
-			File[] files = dir.listFiles();
-			if (files != null && files.length > 0) {
-				for (File file : files) {
-					try (FileWriter writer = new FileWriter(file)) {
-						writer.write(newContent);
-						writer.flush();
-					}
+		ensureDirectoryExists();
+		File[] files = new File(DIRECTORY_PATH).listFiles();
+		if (files != null && files.length > 0) {
+			for (File file : files) {
+				try (FileWriter writer = new FileWriter(file)) {
+					writer.write(newContent);
+					writer.flush();
 				}
-				System.out.println("All files updated successfully.");
-			} else {
-				System.out.println("No files to update.");
 			}
+			System.out.println("All files updated successfully.");
 		} else {
 			System.out.println("No files to update.");
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException, InvalidFileNameException {
 		try (Scanner scan = new Scanner(System.in)) {
 			System.out.println("Enter command (write/list/read/copy/search/remove/removeAll/update/updateAll):");
 			String command = scan.nextLine().trim().toLowerCase();
@@ -245,8 +229,12 @@ public class Custom_exception_example1 {
 			default:
 				System.out.println("Invalid command.");
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			System.err.println("Error: " + e.getMessage());
+		} catch (InvalidFileNameException e) {
+			System.err.println("Error: " + e.getMessage());
+			System.err.println("Invalid File Name : " + e.getFilename());
+			e.getSuggestedFix();
 		} finally {
 			System.out.println("Finished !!!");
 		}
